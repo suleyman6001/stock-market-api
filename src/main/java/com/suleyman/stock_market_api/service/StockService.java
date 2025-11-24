@@ -5,6 +5,7 @@ import com.suleyman.stock_market_api.dto.StockDto;
 import com.suleyman.stock_market_api.dto.StockWithPriceDto;
 import com.suleyman.stock_market_api.entity.CurrentStockDetails;
 import com.suleyman.stock_market_api.entity.Stock;
+import com.suleyman.stock_market_api.exception.StockNotFoundException;
 import com.suleyman.stock_market_api.repository.CurrentStockDetailsRepository;
 import com.suleyman.stock_market_api.repository.StockRepository;
 import org.slf4j.Logger;
@@ -131,7 +132,7 @@ public class StockService {
                     dto.getLow(),
                     dto.getVwap()
             );
-            logger.info("Updated the currentStockDetails entity with ticker {}", ticker);
+            logger.info("Created currentStockDetails entity with ticker {}", ticker);
         }
 
         return stockDetailsRepo.save(details);
@@ -151,7 +152,20 @@ public class StockService {
                 .bodyToMono(Map.class)
                 .block();
 
+        if (response == null) {
+            throw new StockNotFoundException(ticker);
+        }
+
+        Object status = response.get("status");
+        if ("NOT_FOUND".equals(status) || "ERROR".equals(status)) {
+            throw new StockNotFoundException(ticker);
+        }
+
         Map<String, Object> results = (Map<String, Object>) response.get("results");
+
+        if (results == null || results.isEmpty()) {
+            throw new StockNotFoundException(ticker);
+        }
 
         return new StockDto(
                 (String) results.get("ticker"),
@@ -182,10 +196,22 @@ public class StockService {
                 .bodyToMono(Map.class)
                 .block();
 
+        if (response == null) {
+            throw new StockNotFoundException(ticker);
+        }
+
+        Object status = response.get("status");
+        if ("NOT_FOUND".equals(status) || "ERROR".equals(status)) {
+            throw new StockNotFoundException(ticker);
+        }
+
         // Extract "results" array from Polygon response
         java.util.List<Map<String, Object>> results =
                 (java.util.List<Map<String, Object>>) response.get("results");
 
+        if (results == null || results.isEmpty()) {
+            throw new StockNotFoundException(ticker);
+        }
         Map<String, Object> r = results.get(0);
 
         // Parse safely — Polygon often sends scientific notation (e.g., 1.79798344E8)
