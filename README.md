@@ -1,6 +1,7 @@
 Stock Market API
 
 A Spring Boot REST API that fetches stock market data from Polygon.io, persists it in PostgreSQL, and exposes endpoints for querying stored stock information.
+Built with Java 21, Spring Boot 3.x, PostgreSQL and dockerized with Docker Compose, this project demonstrates clean architecture, JPA persistence, and modular service design — serving as a base for a future microservices setup.
 
 The project supports:
 - Local development via IntelliJ
