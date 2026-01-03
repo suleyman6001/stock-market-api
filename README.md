@@ -1,108 +1,133 @@
-# Stock Market API (Spring Boot + PostgreSQL + Polygon.io)
+Stock Market API
 
-A personal backend project that fetches and stores delayed U.S. stock price data using the [Polygon.io](https://polygon.io) API.  
-Built with Java 21, Spring Boot 3.x, and PostgreSQL, this project demonstrates clean architecture, JPA persistence, and modular service design — serving as a base for a future microservices setup.
+A Spring Boot REST API that fetches stock market data from Polygon.io, persists it in PostgreSQL, and exposes endpoints for querying stored stock information.
 
----
+The project supports:
+- Local development via IntelliJ
+- Containerized execution via Docker & Docker Compose
 
-## Tech Stack
 
-| Category | Technology                       |
-|-----------|----------------------------------|
-| Language | Java 21                          |
-| Framework | Spring Boot 3.x                  |
-| Persistence | Spring Data JPA, Hibernate       |
-| Database | PostgreSQL                       |
-| HTTP Client | WebClient (Spring WebFlux)       |
-| Build Tool | Maven                            |
-| Testing | JUnit 5                          |
-| Logging | SLF4J / Logback                  |
-| External API | Polygon.io                       |
+Tech Stack
+- Java 21
+- Spring Boot
+- Spring Data JPA (Hibernate)
+- PostgreSQL
+- Maven (via Maven Wrapper)
+- Docker & Docker Compose
+- Polygon.io API
 
----
 
-## Features
+Prerequisites
 
-- Fetch and store stock data from Polygon.io  
-- Retrieve the most recent (15-minute delayed) stock price snapshot  
-- Automatically persist stock and price data in PostgreSQL  
-- Layered architecture (Entity → Repository → Service → Controller)  
-- Hibernate-based ORM mapping with JPA annotations  
-- Simple configuration via `.properties` files and environment variables  
-- Ready for REST endpoints and microservices modularization  
+For local IntelliJ run:
+- Java 21
+- PostgreSQL (running locally)
+- IntelliJ IDEA
 
----
+For Docker run:
+- Docker Desktop
+- No local PostgreSQL required
 
-## Setup Instructions
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/<your-username>/stock-market-api.git
-cd stock-market-api
-```
+Configuration Overview (Important)
 
-### 2. Configure PostgreSQL
-Create a new database:
-```sql
+This project uses externalized configuration.
+
+- application.properties
+  Contains placeholders only (no secrets)
+
+- application-local.properties (not committed)
+  Used only for local IntelliJ runs
+
+- .env (not committed)
+  Used only for Docker Compose runs
+
+Secrets are never committed.
+
+
+Option A — Run Locally in IntelliJ (Recommended for Development)
+
+1) Create local configuration file
+
+Create:
+src/main/resources/application-local.properties
+
+Example:
+
+POLYGON_API_KEY=YOUR_API_KEY_HERE
+DB_URL=jdbc:postgresql://localhost:5432/stock_api
+DB_USER=postgres
+DB_PASS=postgres
+
+
+2) Enable the local Spring profile in IntelliJ
+
+Run / Debug Configurations → Environment variables:
+SPRING_PROFILES_ACTIVE=local
+
+
+3) Create local database
+
 CREATE DATABASE stock_api;
-```
 
-### 3. Configure application properties
-In `src/main/resources/`, configure `application.properties` with your own API key and DB details
 
-### 4. Run the application
-```bash
-mvn spring-boot:run
-```
+4) Run the application
 
-The app starts on [http://localhost:8081](http://localhost:8081).
+Run StockMarketApiApplication from IntelliJ.
 
----
+API available at:
+http://localhost:8081
 
-## Current Progress
 
-| Component | Status |
-|------------|---------|
-| Entities (`Stock`, `CurrentStockDetails`) | Complete |
-| Database connection (PostgreSQL + Hibernate) | Verified |
-| Repositories (Spring Data JPA) | Working |
-| Service layer (`StockService`, `PriceService`) | In progress |
-| Polygon.io API integration | Next |
-| REST controllers | Planned |
-| Microservices modularization | Future milestone |
+Option B — Run with Docker & Docker Compose
 
----
+1) Create .env file (NOT committed)
 
-## Project Structure
+In project root, create .env:
 
-```
-src/
- ├─ main/
- │   ├─ java/com/example/stockapi/
- │   │   ├─ entity/
- │   │   ├─ repository/
- │   │   ├─ service/
- │   │   ├─ controller/        # coming soon
- │   │   └─ StockMarketApiApplication.java
- │   └─ resources/
- │       ├─ application.properties
- │       └─ application-local.properties (gitignored)
- └─ test/
-```
+POLYGON_API_KEY=YOUR_API_KEY_HERE
+DB_URL=jdbc:postgresql://db:5432/stock_api
+DB_USER=postgres
+DB_PASS=postgres
 
----
 
-## Example Usage (coming soon)
+2) Build the application JAR (Windows)
 
-```bash
-GET /api/stocks/NVDA
-GET /api/stocks/NVDA/price
-```
+Use Maven Wrapper:
 
----
+.\mvnw.cmd clean install "-Dmaven.test.skip=true"
 
-## Author
 
-**Suleyman Rahimov**  
-Software Engineer | Java • Spring Boot • PostgreSQL  
-Based in Austria
+3) Start containers
+
+docker compose up --build
+
+API available at:
+http://localhost:8081
+
+
+4) Stop containers
+
+docker compose down
+
+Reset DB data:
+docker compose down -v
+
+
+Common Notes
+
+- In Docker Compose, PostgreSQL hostname is 'db'
+- .env and application-local.properties must never be committed
+- If DB credentials change, you may need docker compose down -v
+
+
+Project Structure (Relevant Files)
+Dockerfile
+docker-compose.yml
+.env (not committed)
+src/main/resources/application.properties
+src/main/resources/application-local.properties (not committed)
+
+
+License
+Educational and portfolio purposes.

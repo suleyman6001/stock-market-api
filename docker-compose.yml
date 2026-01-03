@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16
+    container_name: stock_db
+    environment:
+      POSTGRES_DB: stock_api
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "5432:5432"
+    volumes:
+      - stock_pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: stock_api
+    depends_on:
+      - db
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+
+volumes:
+  stock_pgdata:
