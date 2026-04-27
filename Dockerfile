@@ -1,15 +1,39 @@
-# This line is for initializing a basic linux environment with Java JDK21 in it.
-FROM eclipse-temurin:21-jre
+# Use a full JDK image because this first stage needs to compile/build the Java application.
+FROM eclipse-temurin:21-jdk AS build
 
-# This line creates the current working directory inside the container
+# Set the working directory inside the Docker image to /app.
 WORKDIR /app
 
-# This line copies the jar file from my host machine (from target directory) into the container filesystem,
-# renames it stock_api_app.jar and places it inside /app because of WORKDIR
-COPY target/*.jar stock_api_app.jar
+# Copy the Maven wrapper script from your project into the Docker image.
+COPY mvnw .
 
-# This line declares that the container will expose port 8081. This is mostly for documentation.
+# Copy the Maven wrapper configuration folder into the Docker image.
+COPY .mvn .mvn
+
+# Copy the Maven project file first so Docker can cache dependency downloads when source code changes.
+COPY pom.xml .
+
+# Copy the application source code into the Docker image.
+COPY src src
+
+# Give the Maven wrapper execute permission inside the Linux-based Docker image.
+RUN chmod +x mvnw
+
+# Build the Spring Boot application inside Docker and skip tests during the image build.
+RUN ./mvnw clean package -DskipTests
+
+
+# Start the final runtime image using a smaller JRE image because running the app does not require the full JDK.
+FROM eclipse-temurin:21-jre
+
+# Set the working directory inside the final runtime container.
+WORKDIR /app
+
+# Copy the built JAR file from the build stage into the final runtime image.
+COPY --from=build /app/target/*.jar stock_api_app.jar
+
+# Document that this application listens on port 8081 inside the container.
 EXPOSE 8081
 
-# This line is the runtime command. When docker runs the application, it executes java -jar stock_api_app.jar
+# Start the Spring Boot application when the container runs.
 ENTRYPOINT ["java", "-jar", "stock_api_app.jar"]
